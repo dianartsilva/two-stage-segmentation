@@ -6,6 +6,9 @@ import torch
 from torch.utils.data import Dataset
 
 class PH2(Dataset):
+    hi_size = 768
+    pos_weight = 0.6326
+
     def __init__(self, fold, inputType = None, transform=None):
         assert fold in ['train', 'test'], f'fold {fold} must be train or test'
         assert inputType in ['patches', None], f'inputType {inputType} must be patch or None'
@@ -48,11 +51,10 @@ class PH2(Dataset):
         #print('seg:',type(seg), seg.dtype, seg.shape)
         if self.transform:
             d = self.transform(image=img, mask=seg)
-            img_aug = d['image']
-            seg_aug = d['mask']
+            img = d['image']
+            seg = d['mask']
             #print('imgph2:', img.min(), img.max(), img.dtype, img.shape)
             #print('segph2:', seg.min(), seg.max(), seg.dtype, seg.shape)
-            return img, seg, img_aug, seg_aug
 
         return img, seg
 

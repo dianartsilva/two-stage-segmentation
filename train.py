@@ -1,59 +1,50 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
 import torch
 from torch import nn
-import torchvision
 from torch.utils.data import DataLoader
 from torchvision.models.segmentation import deeplabv3_resnet50
-from torchinfo import summary
-import torch.optim as optim
-
+from torch import optim
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-
 from time import time
 import datetime
+import importlib
 
+DATASET = 'PH2'
+USE_PATCHES = False
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+################## MODEL ##################
+
 model = deeplabv3_resnet50(pretrained=False, progress=True, num_classes=1)
-#print(summary(model))
 model = model.to(device)
 
-DATASET = 'PH2'
-SIZE_PATCHES = None  # None = no patches
+################## LOAD DATASET ##################
+
+i = importlib.import_module('dataloaders.' + DATASET.lower())
+ds = getattr(i, DATASET.upper())
 
 l = [
     A.HorizontalFlip(),
     A.Rotate(180),
     A.RandomBrightnessContrast(0.1),
 ]
-if SIZE_PATCHES == None:
-    l += [A.RandomScale([1/8, 1/8], p=1)]
+if USE_PATCHES: # low-resolution
+    l += [A.RandomCrop(ds.hi_size//16, ds.hi_size//16)]
 else:
-    l += [A.RandomCrop(64, 64)]
+    l += [
+        A.Resize(ds.hi_size//8+ds.hi_size//20, ds.hi_size//8+ds.hi_size//20),
+        A.RandomCrop(ds.hi_size//8, ds.hi_size//8),
+    ]
 l += [ToTensorV2()]
 train_transforms = A.Compose(l)
 
-if DATASET == 'PH2':
-    from dataloaders.ph2 import PH2
-    tr = PH2('train', None, train_transforms)
-    pos_weight = 0.6326
-if DATASET == 'EVICAN':
-    from dataloaders.evican import EVICAN
-    tr = EVICAN('train', train_transforms)
-    pos_weight = 0.9764
-if DATASET == 'RETINA':
-    from dataloaders.retina import RETINA
-    tr = RETINA('train', train_transforms)
-    pos_weight = 0.9096
+tr = ds('train', transform=train_transforms)
+pos_weight = ds.pos_weight
 
-#pos_weight = 1-torch.mean(torch.stack([y for x, y in tr]))
-#print('pos_weight:', pos_weight)
+################## TRAINING ##################
 
-tr = DataLoader(tr, batch_size=1, shuffle=True, num_workers=8)
+tr = DataLoader(tr, batch_size=64, shuffle=True, num_workers=6)
 
 learning_rate = 1e-5
 opt = optim.Adam(model.parameters(),learning_rate)
@@ -67,10 +58,13 @@ loss_func = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(pos_weight))
 
 # Training the model
 
-model.eval()  # desativar o BatchNorm FIXME
-print (f'\nTraining {DATASET} {SIZE_PATCHES} dataset...\n')
+model.train()
+print (f'\nTraining {DATASET} USEPATCHES={USE_PATCHES} dataset...\n')
 
 EPOCHS = 300
+if USE_PATCHES:
+    EPOCHS *= 16
+
 total_time = 0
 loss_values =[]
 epoch_values = []
@@ -79,7 +73,7 @@ for epoch in range(EPOCHS):
     tic = time()
     avg_loss = 0
     avg_dice = 0
-    for _, _, X, Y in tr:
+    for X, Y in tr:
         X = X.to(device)
         Y = Y[:, None, :,:].to(device)
         #print('X:', X.shape)
@@ -101,15 +95,17 @@ for epoch in range(EPOCHS):
 
 total_time = str(datetime.timedelta(seconds=round(total_time)))
 
-torch.save(model.cpu().state_dict(), f'ResNet50-{DATASET}-{PATCH_SIZE}.pth')
+torch.save(model.cpu().state_dict(), f'results/ResNet50-{DATASET}-patches-{USE_PATCHES}.pth')
 
 #print('loss values:', loss_values)
 #print('total time:', total_time)
 
+################## PLOT ##################
+
+import matplotlib.pyplot as plt
 fig = plt.figure(figsize=(10,5))
 plt.plot(epoch_values, loss_values)
-plt.title(f'{DATASET} {PATCH_SIZE} - Training Time = {total_time} \n Learning rate = {learning_rate}')
+plt.title(f'{DATASET} {USE_PATCHES} - Training Time = {total_time} \n Learning rate = {learning_rate}')
 plt.xlabel('EPOCH')
 plt.ylabel('Loss')
-plt.legend(loc='upper right')
-fig.savefig(f'ResNet50_{DATASET}_{PATCH_SIZE}_train_loss.png',bbox_inches='tight', dpi=150)
+fig.savefig(f'results/ResNet50_{DATASET}_patches_{USE_PATCHES}_train_loss.png',bbox_inches='tight', dpi=150)

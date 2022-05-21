@@ -1,52 +1,41 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-
 import torch
 from torch import nn
-import torchvision
 from torch.utils.data import DataLoader
 from torchvision.models.segmentation import deeplabv3_resnet50
 from torchinfo import summary
-import torch.optim as optim
-
+from torch import optim
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
-dataset = 'PH2-patches-64'
-setData = 'train'
+DATASET = 'PH2'
+FOLD = 'train'
+
+################## MODEL ##################
 
 model = deeplabv3_resnet50(pretrained=False, progress=True, num_classes=1)
 
-model.load_state_dict(torch.load(f'ResNet50-{dataset}.pth', map_location=torch.device('cpu')))
+model.load_state_dict(torch.load(f'results/ResNet50-{DATASET}-patches-True.pth', map_location=torch.device('cpu')))
 model = model.cuda()
 
-#print(summary(model))
+################## LOAD DATASET ##################
 
-test_transforms = A.Compose([
-    A.Resize(256, 256), 
-    ToTensorV2()
-])
+i = importlib.import_module('dataloaders.' + DATASET.lower())
+ds = getattr(i, DATASET.upper())
 
-testP_transforms = A.Compose([
-    #A.Resize(32, 32), 
-    ToTensorV2()
-])
+l = []
+l += [A.Resize(ds.hi_size//8, ds.hi_size//8)]
+l += [ToTensorV2()]
+test_transforms = A.Compose(l)
+testP_transforms = A.Compose([ToTensorV2()])
 
-if dataset == 'PH2':
-    from ph2 import PH2
-    ts = PH2(setData, None, test_transforms)
-if dataset[0:11] == 'PH2-patches':
-    from ph2 import PH2
-    ts = PH2(setData, 'patches', testP_transforms)
-if dataset == 'EVICAN':
-    from evican import EVICAN
-    ts = EVICAN(setData, test_transforms)
-if dataset == 'RETINA':
-    from retina import RETINA
-    ts = RETINA(setData, test_transforms)
-    
-ts = DataLoader(ts, batch_size=1, shuffle=False)
+ts = ds(FOLD, transform=test_transforms)
+
+################## EVALUATION ##################
+
+ts = DataLoader(ts, batch_size=64, shuffle=False)
 opt = optim.Adam(model.parameters())
 
 # Dice and loss function
@@ -58,7 +47,7 @@ loss_func = nn.BCEWithLogitsLoss()
 
 model.eval()
 
-path_save = os.path.join('ResNet50 Test Results/', f'{dataset}-{setData}') 
+path_save = os.path.join('results/ResNet50 Test Results/', f'{DATASET}-{FOLD}')
 os.makedirs(path_save)
 
 numb = 0
@@ -96,12 +85,8 @@ for X, Y in ts:
         plt.imshow(Y_pred >= 0.5, cmap='gray')
         plt.show()
         plt.close(fig)
-        fig.savefig(f'ResNet50 Test Results/{dataset}-{setData}/{dataset}_img{numb}.png',bbox_inches='tight', dpi=150)
+        fig.savefig(f'results/ResNet50 Test Results/{DATASET}-{FOLD}/{DATASET}_img{numb}.png',bbox_inches='tight', dpi=150)
     
     numb += 1
     
-print(f'Model Loss: {avg_loss} - Dice: {avg_dice}') 
-
-    
-
-
+print(f'Model Loss: {avg_loss} - Dice: {avg_dice}')

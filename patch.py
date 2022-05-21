@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
 import torch
 from torch import nn
-
+import os
 
 def patches_save(patches, dataset, mask_type, numb):
     '''Shows the patch division'''
@@ -18,8 +17,7 @@ def patches_save(patches, dataset, mask_type, numb):
             plt.imshow(inp, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'proj1/img{numb}/{dataset}_{mask_type}.png',bbox_inches='tight', dpi=150)
-
+    fig.savefig(f'results/proj1/img{numb}/{dataset}_{mask_type}.png',bbox_inches='tight', dpi=150)
 
 def mean_patch(patches):
     mean_values = []
@@ -52,10 +50,9 @@ def visualize_top10(patches, indices, dataset, mask_type, numb):
                 plt.imshow(inp>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'proj1/img{numb}/{dataset}_{mask_type}.png',bbox_inches='tight', dpi=150)    
+    fig.savefig(f'results/proj1/img{numb}/{dataset}_{mask_type}.png',bbox_inches='tight', dpi=150)    
 
-
-def visualize_seg (X, Y, Y_pred, numb, n):
+def visualize_seg(X, Y, Y_pred, numb, n):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
@@ -72,14 +69,14 @@ def visualize_seg (X, Y, Y_pred, numb, n):
     plt.imshow(Y_pred >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'proj1/img{numb}/patch{n}.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/proj1/img{numb}/patch{n}.png',bbox_inches='tight', dpi=150)
 
 def fig_save(img, name, numb):
     fig = plt.figure(figsize=(10,5))
     plt.imshow(img >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'proj1/img{numb}/{name}.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/proj1/img{numb}/{name}.png',bbox_inches='tight', dpi=150)
     
 def patches_concat(patches):     
     col_concat = torch.tensor([])
@@ -111,9 +108,9 @@ def visualize_models(Y, Y_pred1, Y_pred2, numb):
     plt.imshow(Y_pred2>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'proj1/img{numb}/models.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/proj1/img{numb}/models.png',bbox_inches='tight', dpi=150)
     
-def visualize_model1 (X, Y, Y_pred, numb):
+def visualize_model1(X, Y, Y_pred, numb):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
@@ -130,4 +127,4 @@ def visualize_model1 (X, Y, Y_pred, numb):
     plt.imshow(Y_pred >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'proj1/img{numb}/model1.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/proj1/img{numb}/model1.png',bbox_inches='tight', dpi=150)

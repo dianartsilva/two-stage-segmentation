@@ -7,6 +7,9 @@ from torch.utils.data import Dataset
 
 
 class RETINA(Dataset):
+    hi_size = 768
+    pos_weight = 0.9096
+
     def __init__(self, fold, transform=None):
         assert fold in ['train', 'test'], f'fold {fold} must be train or test'
         self.path = 'datasets/RETINA_dataset'
