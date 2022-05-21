@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 class RETINA(Dataset):
     def __init__(self, fold, transform=None):
         assert fold in ['train', 'test'], f'fold {fold} must be train or test'
-        self.path = 'RETINA_dataset'
+        self.path = 'datasets/RETINA_dataset'
         files = os.listdir(self.path)
         self.files = []
         for filename in files:    

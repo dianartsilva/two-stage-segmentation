@@ -12,10 +12,10 @@ class EVICAN(Dataset):
         assert fold in ['train', 'test'], f'fold {fold} must be train or test'
         self.fold = fold
         if self.fold == 'train':
-            self.path_seg = 'EVICAN_dataset/Masks/EVICAN_train_masks/Cells'
+            self.path_seg = 'datasets/EVICAN_dataset/Masks/EVICAN_train_masks/Cells'
             
         else:
-            self.path_seg = 'EVICAN_dataset/Masks/EVICAN_val_masks/Cells'
+            self.path_seg = 'datasets/EVICAN_dataset/Masks/EVICAN_val_masks/Cells'
         self.files = os.listdir(self.path_seg)
         self.transform = transform
             
@@ -24,9 +24,9 @@ class EVICAN(Dataset):
         f = self.files[i]
        
         if self.fold == 'train':
-            img = imread(f'EVICAN_dataset/Images/EVICAN_train2019/{f}').astype(np.float32)
+            img = imread(f'datasets/EVICAN_dataset/Images/EVICAN_train2019/{f}').astype(np.float32)
         else:
-            img = imread(f'EVICAN_dataset/Images/EVICAN_val2019/{f}').astype(np.float32)
+            img = imread(f'datasets/EVICAN_dataset/Images/EVICAN_val2019/{f}').astype(np.float32)
 
         seg = (imread(f'{self.path_seg}/{f}', True) >= 128).astype(np.float32)
         
