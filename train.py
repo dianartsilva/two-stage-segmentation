@@ -106,7 +106,7 @@ torch.save(model.cpu().state_dict(), f'results/ResNet50-{args.dataset}-patches-{
 import matplotlib.pyplot as plt
 fig = plt.figure(figsize=(10,5))
 plt.plot(epoch_values, loss_values)
-plt.title(f'{args.dataset} {args.use_patches} - Training Time = {total_time} \n Learning rate = {learning_rate}')
+plt.title(f'{args.dataset} {args.use_patches} - Training Time = {total_time} \n Learning rate = 1e-03')
 plt.xlabel('EPOCH')
 plt.ylabel('Loss')
 fig.savefig(f'results/ResNet50_{args.dataset}_patches_{args.use_patches}_train_loss.png',bbox_inches='tight', dpi=150)

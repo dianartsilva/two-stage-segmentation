@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as ptc
 import torch
 from torch import nn
 import os
 
-def patches_save(patches, dataset, mask_type, numb):
+def patches_result(patches, dataset, mask_type, numb):
     '''Shows the patch division'''
     row = patches.shape[0]
     col = patches.shape[1]
@@ -17,20 +18,9 @@ def patches_save(patches, dataset, mask_type, numb):
             plt.imshow(inp, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/proj1/img{numb}/{dataset}_{mask_type}.png',bbox_inches='tight', dpi=150)
-
-def mean_patch(patches):
-    mean_values = []
-    ind_values = []
-    for i in range(patches.shape[0]):
-        for j in range(patches.shape[1]):
-            mean_values.append(abs(torch.mean(patches[i][j])-0.5)) 
-            ind_values.append([i,j])       
-    argmean_sorted = np.argsort(mean_values, axis=0)
-    ind_min10 = [ind_values[i] for i in argmean_sorted[0:10]]
-    return ind_min10
+    fig.savefig(f'results/Two Segmentation Results/img{numb}/{dataset}_{mask_type}.png',bbox_inches='tight', dpi=150)
     
-def visualize_top10(patches, indices, dataset, mask_type, numb):
+def top10_result(patches, indices, dataset, mask_type, numb):
     '''Shows the patch division'''
     row = patches.shape[0]
     col = patches.shape[1]
@@ -50,48 +40,35 @@ def visualize_top10(patches, indices, dataset, mask_type, numb):
                 plt.imshow(inp>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/proj1/img{numb}/{dataset}_{mask_type}.png',bbox_inches='tight', dpi=150)    
+    fig.savefig(f'results/Two Segmentation Results/img{numb}/{dataset}_{mask_type}_Top10.png',bbox_inches='tight', dpi=150)    
 
-def visualize_seg(X, Y, Y_pred, numb, n):
+def model2_result(X, Y, Y_pred, numb, n):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
-    plt.title('Image')
-    X = X.cpu().permute(0,2,3,1).numpy()[0,:,:,:]
-    plt.imshow(X.astype(np.uint8))
-    plt.subplot(1, 3, 2)
     plt.title('Ground Truth')
+    X = torch.squeeze(X).cpu()
+    plt.imshow(X >= 0.5, cmap='gray', vmin=0, vmax=1)
+    plt.subplot(1, 3, 2)
+    plt.title('ResNet50-patches-False')
     Y = torch.squeeze(Y).cpu()
     plt.imshow(Y>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.subplot(1, 3, 3)
-    plt.title('U-Net')
+    plt.title('ResNet50-patches-True')
     Y_pred = torch.squeeze(Y_pred).cpu()
     plt.imshow(Y_pred >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/proj1/img{numb}/patch{n}.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/Two Segmentation Results/img{numb}/patch{n}.png',bbox_inches='tight', dpi=150)
 
-def fig_save(img, name, numb):
+def fig(img, name, numb):
     fig = plt.figure(figsize=(10,5))
     plt.imshow(img >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/proj1/img{numb}/{name}.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/Two Segmentation Results/img{numb}/{name}.png',bbox_inches='tight', dpi=150)
     
-def patches_concat(patches):     
-    col_concat = torch.tensor([])
-    final_mask = torch.tensor([])
-    
-    for lin in range (patches.shape[0]):
-        for col in range (patches.shape[1]):
-            col_concat = torch.cat((col_concat,patches[lin,col]), dim=1)
-            
-        final_mask = torch.cat((final_mask,col_concat), dim=0)
-        col_concat = torch.tensor([])
-        
-    return final_mask
-        
-def visualize_models(Y, Y_pred1, Y_pred2, numb):
+def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top10, numb):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
@@ -99,18 +76,23 @@ def visualize_models(Y, Y_pred1, Y_pred2, numb):
     Y = torch.squeeze(Y).cpu()
     plt.imshow(Y>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.subplot(1, 3, 2)
-    plt.title('U-Net: total image')
+    plt.title('ResNet50_patches_False')
     Y_pred1 = torch.squeeze(Y_pred1).cpu()
     plt.imshow(Y_pred1>=0.5, cmap='gray', vmin=0, vmax=1)
+    ax = plt.gca()
+    for i,j in top10:
+        rect = ptc.Rectangle((j*patch_size, i*patch_size), patch_size, patch_size, linewidth=1, edgecolor='r', facecolor='none')
+        ax.add_patch(rect)
     plt.subplot(1, 3, 3)
-    plt.title('U-Net: patches')
+    plt.title('ResNet50_patches_True')
     Y_pred2 = torch.squeeze(Y_pred2).cpu()
     plt.imshow(Y_pred2>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/proj1/img{numb}/models.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/Two Segmentation Results/img{numb}/models.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/Two Segmentation Results/final-seg/img{numb}-two-seg.png',bbox_inches='tight', dpi=150)
     
-def visualize_model1(X, Y, Y_pred, numb):
+def model1_result(X, Y, Y_pred, numb):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
@@ -122,9 +104,9 @@ def visualize_model1(X, Y, Y_pred, numb):
     Y = torch.squeeze(Y).cpu()
     plt.imshow(Y>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.subplot(1, 3, 3)
-    plt.title('U-Net')
+    plt.title('ResNet50-patches-False')
     Y_pred = torch.squeeze(Y_pred).cpu()
     plt.imshow(Y_pred >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/proj1/img{numb}/model1.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/Two Segmentation Results/img{numb}/model1.png',bbox_inches='tight', dpi=150)
