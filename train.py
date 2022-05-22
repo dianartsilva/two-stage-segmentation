@@ -10,8 +10,11 @@ import datetime
 import importlib
 import losses
 
-DATASET = 'PH2'
-USE_PATCHES = False
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('dataset')
+parser.add_argument('use_patches', choices=[0, 1], type=int)
+args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -22,15 +25,15 @@ model = model.to(device)
 
 ################## LOAD DATASET ##################
 
-i = importlib.import_module('dataloaders.' + DATASET.lower())
-ds = getattr(i, DATASET.upper())
+i = importlib.import_module('dataloaders.' + args.dataset.lower())
+ds = getattr(i, args.dataset.upper())
 
 l = [
     A.HorizontalFlip(),
     A.Rotate(180),
     A.RandomBrightnessContrast(0.1),
 ]
-if USE_PATCHES: # low-resolution
+if args.use_patches: # low-resolution
     l += [A.RandomCrop(ds.hi_size//16, ds.hi_size//16)]
 else:
     l += [
@@ -55,10 +58,10 @@ loss_func = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(pos_weight))
 # Training the model
 
 model.train()
-print (f'\nTraining {DATASET} USEPATCHES={USE_PATCHES} dataset...\n')
+print (f'\nTraining {args.dataset} USEPATCHES={args.use_patches} dataset...\n')
 
 EPOCHS = 300
-if USE_PATCHES:
+if args.use_patches:
     EPOCHS *= 16
 
 total_time = 0
@@ -95,7 +98,7 @@ for epoch in range(EPOCHS):
 
 total_time = str(datetime.timedelta(seconds=round(total_time)))
 
-torch.save(model.cpu().state_dict(), f'results/ResNet50-{DATASET}-patches-{USE_PATCHES}.pth')
+torch.save(model.cpu().state_dict(), f'results/ResNet50-{args.dataset}-patches-{args.use_patches}.pth')
 
 #print('loss values:', loss_values)
 #print('total time:', total_time)
@@ -105,7 +108,7 @@ torch.save(model.cpu().state_dict(), f'results/ResNet50-{DATASET}-patches-{USE_P
 import matplotlib.pyplot as plt
 fig = plt.figure(figsize=(10,5))
 plt.plot(epoch_values, loss_values)
-plt.title(f'{DATASET} {USE_PATCHES} - Training Time = {total_time} \n Learning rate = {learning_rate}')
+plt.title(f'{args.dataset} {args.use_patches} - Training Time = {total_time} \n Learning rate = {learning_rate}')
 plt.xlabel('EPOCH')
 plt.ylabel('Loss')
-fig.savefig(f'results/ResNet50_{DATASET}_patches_{USE_PATCHES}_train_loss.png',bbox_inches='tight', dpi=150)
+fig.savefig(f'results/ResNet50_{args.dataset}_patches_{args.use_patches}_train_loss.png',bbox_inches='tight', dpi=150)

@@ -11,22 +11,25 @@ import os
 import importlib
 import patch, losses
 
-DATASET = 'PH2'
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('dataset')
+args = parser.parse_args()
 
 ################## MODEL ##################
 
 model_1 = model = deeplabv3_resnet50(pretrained=False, progress=True, num_classes=1)
-model_1.load_state_dict(torch.load(f'results/ResNet50-{DATASET}-patches-False.pth', map_location=torch.device('cpu')))
+model_1.load_state_dict(torch.load(f'results/ResNet50-{args.dataset}-patches-False.pth', map_location=torch.device('cpu')))
 model_1 = model_1.cuda()
 
 model_2 = model = deeplabv3_resnet50(pretrained=False, progress=True, num_classes=1)
-model_2.load_state_dict(torch.load(f'results/ResNet50-{DATASET}-patches-True.pth', map_location=torch.device('cpu')))
+model_2.load_state_dict(torch.load(f'results/ResNet50-{args.dataset}-patches-True.pth', map_location=torch.device('cpu')))
 model_2 = model_2.cuda()
 
 ################## LOAD DATASET ##################
 
-i = importlib.import_module('dataloaders.' + DATASET.lower())
-ds = getattr(i, DATASET.upper())('test')
+i = importlib.import_module('dataloaders.' + args.dataset.lower())
+ds = getattr(i, args.dataset.upper())('test')
 patch_size = ds.hi_size // 16
 
 lo_transforms = A.Compose([
@@ -108,8 +111,8 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
     Y_pred_patch = torch.squeeze(_Y_pred_hi).unfold(dimension=0, size=patch_size, step=patch_size).unfold(dimension=1, size=patch_size, step=patch_size).cpu()
 
     indices_val = patch.mean_patch(Y_pred_patch)
-    patch.visualize_top10(X_patch, indices_val[0:10], DATASET, 'original', numb)
-    patch.visualize_top10(Y_pred_patch, indices_val[0:10], DATASET, 'pred', numb)
+    patch.visualize_top10(X_patch, indices_val[0:10], args.dataset, 'original', numb)
+    patch.visualize_top10(Y_pred_patch, indices_val[0:10], args.dataset, 'pred', numb)
 
     n = 0
 

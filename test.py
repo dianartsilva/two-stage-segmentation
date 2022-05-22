@@ -11,20 +11,23 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import losses
 
-DATASET = 'PH2'
-FOLD = 'train'
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('dataset')
+parser.add_argument('fold', choices=['train', 'val', 'test'])
+args = parser.parse_args()
 
 ################## MODEL ##################
 
 model = deeplabv3_resnet50(pretrained=False, progress=True, num_classes=1)
 
-model.load_state_dict(torch.load(f'results/ResNet50-{DATASET}-patches-True.pth', map_location=torch.device('cpu')))
+model.load_state_dict(torch.load(f'results/ResNet50-{args.dataset}-patches-True.pth', map_location=torch.device('cpu')))
 model = model.cuda()
 
 ################## LOAD DATASET ##################
 
-i = importlib.import_module('dataloaders.' + DATASET.lower())
-ds = getattr(i, DATASET.upper())
+i = importlib.import_module('dataloaders.' + args.dataset.lower())
+ds = getattr(i, args.dataset.upper())
 
 l = []
 l += [A.Resize(ds.hi_size//8, ds.hi_size//8)]
@@ -32,7 +35,7 @@ l += [ToTensorV2()]
 test_transforms = A.Compose(l)
 testP_transforms = A.Compose([ToTensorV2()])
 
-ts = ds(FOLD, transform=test_transforms)
+ts = ds(args.fold, transform=test_transforms)
 
 ################## EVALUATION ##################
 
@@ -43,7 +46,7 @@ loss_func = nn.BCEWithLogitsLoss()
 
 model.eval()
 
-path_save = os.path.join('results/ResNet50 Test Results/', f'{DATASET}-{FOLD}')
+path_save = os.path.join('results/ResNet50 Test Results/', f'{args.dataset}-{args.fold}')
 os.makedirs(path_save)
 
 numb = 0
@@ -85,7 +88,7 @@ for X, Y in ts:
         plt.imshow(Y_pred >= 0.5, cmap='gray')
         plt.show()
         plt.close(fig)
-        fig.savefig(f'results/ResNet50 Test Results/{DATASET}-{FOLD}/{DATASET}_img{numb}.png',bbox_inches='tight', dpi=150)
+        fig.savefig(f'results/ResNet50 Test Results/{args.dataset}-{args.fold}/{args.dataset}_img{numb}.png',bbox_inches='tight', dpi=150)
     
     numb += 1
     
