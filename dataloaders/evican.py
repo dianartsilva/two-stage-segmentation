@@ -9,6 +9,8 @@ from torch.utils.data import Dataset
 class EVICAN(Dataset):
     hi_size = 2048
     pos_weight = 0.9764
+    noutputs = 1
+    nclasses = 2
 
     def __init__(self, fold, transform=None):
         assert fold in ['train', 'test'], f'fold {fold} must be train or test'

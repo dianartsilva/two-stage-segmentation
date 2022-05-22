@@ -1,4 +1,5 @@
 class KITTI(Dataset):
+    noutputs = 34
     nclasses = 34
 
     def __init__(self, root, transform=None):

@@ -9,6 +9,7 @@ from torchinfo import summary
 from torch import optim
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+import losses
 
 DATASET = 'PH2'
 FOLD = 'train'
@@ -38,11 +39,6 @@ ts = ds(FOLD, transform=test_transforms)
 ts = DataLoader(ts, batch_size=64, shuffle=False)
 opt = optim.Adam(model.parameters())
 
-# Dice and loss function
-def dice_score(y_pred, y_true, smooth=1):
-    dice = (2 * (y_pred * y_true).sum() + smooth) / ((y_pred + y_true).sum() + smooth)
-    return dice
-
 loss_func = nn.BCEWithLogitsLoss()
 
 model.eval()
@@ -62,8 +58,12 @@ for X, Y in ts:
     #print('model',next(model.parameters()).is_cuda)
     with torch.no_grad():
         Y_pred = model(X)['out']
-    dice = dice_score(torch.sigmoid(Y_pred), Y)
-    loss = loss_func(Y_pred, Y) + (1-dice)
+    if ds.nclasses > 2:
+        dice = 0
+        loss = nn.functional.cross_entropy(Y_pred, Y)
+    else:
+        dice = losses.dice_score(torch.sigmoid(Y_pred), Y)
+        loss = loss_func(Y_pred, Y) + (1-dice)
     avg_loss += float(loss) / len(ts)
     avg_dice += float(dice) / len(ts)
     

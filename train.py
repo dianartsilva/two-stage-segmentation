@@ -8,6 +8,7 @@ from albumentations.pytorch import ToTensorV2
 from time import time
 import datetime
 import importlib
+import losses
 
 DATASET = 'PH2'
 USE_PATCHES = False
@@ -49,11 +50,6 @@ tr = DataLoader(tr, batch_size=64, shuffle=True, num_workers=6)
 learning_rate = 1e-5
 opt = optim.Adam(model.parameters(),learning_rate)
 
-# Dice and loss function
-def dice_score(y_pred, y_true, smooth=1):
-    dice = (2 * (y_pred * y_true).sum() + smooth) / ((y_pred + y_true).sum() + smooth)
-    return dice
-
 loss_func = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(pos_weight))
 
 # Training the model
@@ -80,8 +76,12 @@ for epoch in range(EPOCHS):
         #print('Y:', Y.shape)
         Y_pred = model(X)['out']
         #print('Y_pred:', Y_pred.shape)
-        dice = dice_score(torch.sigmoid(Y_pred), Y)
-        loss = loss_func(Y_pred, Y) + (1-dice)
+        if ds.nclasses > 2:
+            dice = 0
+            loss = nn.functional.cross_entropy(Y_pred, Y)
+        else:
+            dice = losses.dice_score(torch.sigmoid(Y_pred), Y)
+            loss = loss_func(Y_pred, Y) + (1-dice)
         opt.zero_grad()
         loss.backward()
         opt.step()

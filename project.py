@@ -7,9 +7,9 @@ from torch import optim
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from skimage.transform import resize
-import patch
 import os
 import importlib
+import patch, losses
 
 DATASET = 'PH2'
 
@@ -58,11 +58,6 @@ ts = LoHiTransform()
 ts = DataLoader(ts, batch_size=1, shuffle=False, num_workers=6)
 opt = optim.Adam(model_1.parameters())
 
-# Dice and loss function
-def dice_score(y_pred, y_true, smooth=1):
-    dice = (2 * (y_pred * y_true).sum() + smooth) / ((y_pred + y_true).sum() + smooth)
-    return dice
-
 loss_func = nn.BCEWithLogitsLoss()
 
 model_1.eval()
@@ -86,8 +81,12 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
 
     with torch.no_grad():
         Y_pred_lo = model_1(X_lo)['out']
-    dice = dice_score(torch.sigmoid(Y_pred_lo), Y_lo)
-    loss = loss_func(Y_pred_lo, Y_lo) + (1-dice)
+    if ds.nclasses > 2:
+        dice = 0
+        loss = nn.functional.cross_entropy(Y_pred, Y)
+    else:
+        dice = dice_score(torch.sigmoid(Y_pred_lo), Y_lo)
+        loss = loss_func(Y_pred_lo, Y_lo) + (1-dice)
     loss_model1 += float(loss) / len(ts)
     dice_model1 += float(dice) / len(ts)
 
@@ -95,8 +94,8 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
     if not os.path.exists(path):
         os.makedirs(path)
 
-    # FIXME: I had to comment this, it was not working due to shapes (?!)
-    #patch.visualize_model1(X_lo, Y_lo, Y_pred_lo, numb)
+    # I had to comment this, it was not working due to shapes (?!)
+    patch.visualize_model1(X_lo, Y_lo, Y_pred_lo, numb)
 
     # converter a segmentacao Y_pred_lo para Y_pred_hi para estar na mesma resolucao da X_hi
     Y_pred_hi = torch.tensor(resize(Y_pred_lo.cpu()[0, 0], Y_hi.shape[2:])[None, None])
@@ -105,7 +104,8 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
     X_patch = torch.squeeze(X_hi).unfold(dimension=1, size=patch_size, step=patch_size).unfold(dimension=2, size=patch_size, step=patch_size)
     X_patch = X_patch.permute(1,2,3,4,0)
     Y_patch = torch.squeeze(Y_hi).unfold(dimension=0, size=patch_size, step=patch_size).unfold(dimension=1, size=patch_size, step=patch_size)
-    Y_pred_patch = torch.squeeze(Y_pred_hi).unfold(dimension=0, size=patch_size, step=patch_size).unfold(dimension=1, size=patch_size, step=patch_size).cpu()
+    _Y_pred_hi = Y_pred_hi if ds.nclasses == 2 else Y_pred_hi.max(1, keepdim=True)
+    Y_pred_patch = torch.squeeze(_Y_pred_hi).unfold(dimension=0, size=patch_size, step=patch_size).unfold(dimension=1, size=patch_size, step=patch_size).cpu()
 
     indices_val = patch.mean_patch(Y_pred_patch)
     patch.visualize_top10(X_patch, indices_val[0:10], DATASET, 'original', numb)
@@ -122,9 +122,13 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
         
         with torch.no_grad():
             Y_pred2 = model_2(X2)['out']
-        
-        dice = dice_score(torch.sigmoid(Y_pred2), Y2)
-        loss = loss_func(Y_pred2, Y2) + (1-dice)
+
+        if ds.nclasses > 2:
+            dice = 0
+            loss = nn.functional.cross_entropy(Y_pred2, Y2)
+        else:
+            dice = losses.dice_score(torch.sigmoid(Y_pred2), Y2)
+            loss = loss_func(Y_pred2, Y2) + (1-dice)
         loss_model2 += float(loss) / (10*len(ts))
         dice_model2 += float(dice) / (10*len(ts))
         
@@ -137,8 +141,12 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
 
     final_mask = patch.patches_concat(Y_pred_patch)[None, None, :, :].cuda()
 
-    dice = dice_score(torch.sigmoid(final_mask), Y_hi)
-    loss = loss_func(final_mask, Y_hi) + (1-dice)
+    if ds.nclasses > 2:
+        dice = 0
+        loss = nn.functional.cross_entropy(final_mask, Y_hi)
+    else:
+        dice = losses.dice_score(torch.sigmoid(final_mask), Y_hi)
+        loss = loss_func(final_mask, Y_hi) + (1-dice)
     loss_modelF += float(loss) / len(ts)
     dice_modelF += float(dice) / len(ts)
 
