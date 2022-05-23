@@ -10,6 +10,7 @@ from torch import optim
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import losses
+import importlib
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -21,7 +22,7 @@ args = parser.parse_args()
 
 model = deeplabv3_resnet50(pretrained=False, progress=True, num_classes=1)
 
-model.load_state_dict(torch.load(f'results/ResNet50-{args.dataset}-patches-True.pth', map_location=torch.device('cpu')))
+model.load_state_dict(torch.load(f'results/ResNet50-{args.dataset}-patches-0.pth', map_location=torch.device('cpu')))
 model = model.cuda()
 
 ################## LOAD DATASET ##################
@@ -39,7 +40,7 @@ ts = ds(args.fold, transform=test_transforms)
 
 ################## EVALUATION ##################
 
-ts = DataLoader(ts, batch_size=64, shuffle=False)
+ts = DataLoader(ts, batch_size=1, shuffle=False)
 opt = optim.Adam(model.parameters())
 
 loss_func = nn.BCEWithLogitsLoss()
