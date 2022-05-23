@@ -14,13 +14,18 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset')
 parser.add_argument('use_patches', choices=[0, 1], type=int)
+parser.add_argument('--model', default='deeplab')
 args = parser.parse_args()
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 ################## MODEL ##################
 
-model = deeplabv3_resnet50(pretrained=False, progress=True, num_classes=1)
+if args.model == 'deeplab':
+    model = deeplabv3_resnet50(pretrained=False, progress=True, num_classes=1)
+else:
+    model = torch.hub.load('mateuszbuda/brain-segmentation-pytorch', 'unet',
+        in_channels=3, out_channels=1, init_features=32, pretrained=True)
 model = model.to(device)
 
 ################## LOAD DATASET ##################
