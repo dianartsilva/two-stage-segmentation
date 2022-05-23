@@ -49,7 +49,8 @@ pos_weight = ds.pos_weight
 ################## TRAINING ##################
 
 tr = DataLoader(tr, batch_size=64, shuffle=True, num_workers=6)
-opt = optim.Adam(model.parameters())
+learning_rate = 1e-4
+opt = optim.Adam(model.parameters(), learning_rate)
 
 loss_func = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(pos_weight))
 
