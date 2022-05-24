@@ -89,12 +89,13 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
 
     with torch.no_grad():
         Y_pred_lo = model_1(X_lo)['out']
+        Y_pred_hi_model1 = model_1(X_hi)['out']
     if ds.nclasses > 2:
         dice = 0
         loss = nn.functional.cross_entropy(Y_pred, Y)
     else:
-        dice = losses.dice_score(torch.sigmoid(Y_pred_lo), Y_lo)
-        loss = loss_func(Y_pred_lo, Y_lo) + (1-dice)
+        dice = losses.dice_score(torch.sigmoid(Y_pred_hi_model1), Y_hi)
+        loss = loss_func(Y_pred_hi_model1, Y_hi) + (1-dice)
     loss_model1 += float(loss) / len(ts)
     dice_model1 += float(dice) / len(ts)
 
