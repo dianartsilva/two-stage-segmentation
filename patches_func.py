@@ -2,16 +2,14 @@ import torch
 import numpy as np
 
 
-def min10_avg(patches):
-    mean_values = []
+def avg_sorted(patches):
     ind_values = []
     for i in range(patches.shape[0]):
         for j in range(patches.shape[1]):
-            mean_values.append(abs(torch.mean(patches[i][j])-0.5)) 
-            ind_values.append([i,j])       
-    argmean_sorted = np.argsort(mean_values, axis=0)
-    ind_min10 = [ind_values[i] for i in argmean_sorted[0:10]]
-    return ind_min10
+            mean_val = abs(torch.mean(patches[i][j])-0.5)
+            if mean_val <= 0.25:
+                ind_values.append([i,j])   
+    return ind_values
 
 def concat(patches):     
     col_concat = torch.tensor([])
