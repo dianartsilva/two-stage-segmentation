@@ -14,6 +14,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset')
 parser.add_argument('use_patches', choices=[0, 1], type=int)
+parser.add_argument('--npatches', default=16, type=int)
 parser.add_argument('--model', default='deeplab')
 args = parser.parse_args()
 
@@ -39,7 +40,7 @@ l = [
     A.RandomBrightnessContrast(0.1),
 ]
 if args.use_patches: # low-resolution
-    l += [A.RandomCrop(ds.hi_size//16, ds.hi_size//16)]
+    l += [A.RandomCrop(ds.hi_size//args.npatches, ds.hi_size//args.npatches)]
 else:
     l += [
         A.Resize(ds.hi_size//8+ds.hi_size//20, ds.hi_size//8+ds.hi_size//20),
@@ -102,7 +103,10 @@ for epoch in range(EPOCHS):
 
 total_time = str(datetime.timedelta(seconds=round(total_time)))
 
-torch.save(model.cpu().state_dict(), f'results/ResNet50-{args.dataset}-patches-{args.use_patches}.pth')
+if args.use_patches:
+    torch.save(model.cpu().state_dict(), f'results/ResNet50-{args.dataset}-patches-{args.use_patches}-{args.npatches}.pth')
+else:
+    torch.save(model.cpu().state_dict(), f'results/ResNet50-{args.dataset}-patches-{args.use_patches}.pth')
 
 #print('loss values:', loss_values)
 #print('total time:', total_time)
@@ -112,7 +116,7 @@ torch.save(model.cpu().state_dict(), f'results/ResNet50-{args.dataset}-patches-{
 import matplotlib.pyplot as plt
 fig = plt.figure(figsize=(10,5))
 plt.plot(epoch_values, loss_values)
-plt.title(f'{args.dataset} {args.use_patches} - Training Time = {total_time} \n Learning rate = 1e-03')
+plt.title(f'{args.dataset} {args.use_patches} - Training Time = {total_time} \n Learning rate = {learning_rate}')
 plt.xlabel('EPOCH')
 plt.ylabel('Loss')
-fig.savefig(f'results/ResNet50_{args.dataset}_patches_{args.use_patches}_train_loss.png',bbox_inches='tight', dpi=150)
+fig.savefig(f'results/ResNet50_{args.dataset}_patches_{args.use_patches}_{args.npatches}train_loss.png',bbox_inches='tight', dpi=150)
