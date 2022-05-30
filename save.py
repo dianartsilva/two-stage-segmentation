@@ -5,7 +5,7 @@ import torch
 from torch import nn
 import os
 
-def patches_result(patches, dataset, mask_type, numb):
+def patches_result(patches, dataset, mask_type, numb, path):
     '''Shows the patch division'''
     row = patches.shape[0]
     col = patches.shape[1]
@@ -18,9 +18,9 @@ def patches_result(patches, dataset, mask_type, numb):
             plt.imshow(inp, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/Two Segmentation Results/img{numb}/{dataset}_{mask_type}.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'{path}/{dataset}_{mask_type}.png',bbox_inches='tight', dpi=150)
     
-def top10_result(patches, indices, dataset, mask_type, numb):
+def top_result(patches, indices, dataset, mask_type, numb, path):
     '''Shows the patch division'''
     row = patches.shape[0]
     col = patches.shape[1]
@@ -40,9 +40,9 @@ def top10_result(patches, indices, dataset, mask_type, numb):
                 plt.imshow(inp>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/Two Segmentation Results/img{numb}/{dataset}_{mask_type}_Top10.png',bbox_inches='tight', dpi=150)    
+    fig.savefig(f'{path}/{dataset}_{mask_type}_Top10.png',bbox_inches='tight', dpi=150)    
 
-def model2_result(X, Y, Y_pred, numb, n):
+def model2_result(X, Y, Y_pred, numb, n, path):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
@@ -59,16 +59,16 @@ def model2_result(X, Y, Y_pred, numb, n):
     plt.imshow(Y_pred >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/Two Segmentation Results/img{numb}/patch{n}.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'{path}/patch{n}.png',bbox_inches='tight', dpi=150)
 
-def fig(img, name, numb):
+def fig(img, name, numb, path):
     fig = plt.figure(figsize=(10,5))
     plt.imshow(img >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/Two Segmentation Results/img{numb}/{name}.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'{path}/{name}.png',bbox_inches='tight', dpi=150)
     
-def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top10, numb):
+def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top, numb, path):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
@@ -76,23 +76,23 @@ def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top10, numb):
     Y = torch.squeeze(Y).cpu()
     plt.imshow(Y>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.subplot(1, 3, 2)
-    plt.title('ResNet50_patches_False')
+    plt.title('STAGE 1 SEG')
     Y_pred1 = torch.squeeze(Y_pred1).cpu()
     plt.imshow(Y_pred1>=0.5, cmap='gray', vmin=0, vmax=1)
     ax = plt.gca()
-    for i,j in top10:
+    for i,j in top:
         rect = ptc.Rectangle((j*patch_size, i*patch_size), patch_size, patch_size, linewidth=1, edgecolor='r', facecolor='none')
         ax.add_patch(rect)
     plt.subplot(1, 3, 3)
-    plt.title('ResNet50_patches_True')
+    plt.title('STAGE 2 SEG')
     Y_pred2 = torch.squeeze(Y_pred2).cpu()
     plt.imshow(Y_pred2>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/Two Segmentation Results/img{numb}/models.png',bbox_inches='tight', dpi=150)
-    fig.savefig(f'results/Two Segmentation Results/final-seg/img{numb}-two-seg.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'{path}/models.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'{path[:-5]}/final-seg/img{numb}-two-seg.png',bbox_inches='tight', dpi=150)
     
-def model1_result(X, Y, Y_pred, numb):
+def model1_result(X, Y, Y_pred, numb, path):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
@@ -109,4 +109,4 @@ def model1_result(X, Y, Y_pred, numb):
     plt.imshow(Y_pred >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()
     plt.close(fig)
-    fig.savefig(f'results/Two Segmentation Results/img{numb}/model1.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'{path}/model1.png',bbox_inches='tight', dpi=150)
