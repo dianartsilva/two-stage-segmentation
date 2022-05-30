@@ -40,7 +40,10 @@ l = [
     A.RandomBrightnessContrast(0.1),
 ]
 if args.use_patches: # low-resolution
-    l += [A.RandomCrop(ds.hi_size//args.npatches, ds.hi_size//args.npatches)]
+    l += [
+        A.Resize(ds.hi_size, ds.hi_size),
+        A.RandomCrop(ds.hi_size//args.npatches, ds.hi_size//args.npatches)
+    ]
 else:
     l += [
         A.Resize(ds.hi_size//8+ds.hi_size//20, ds.hi_size//8+ds.hi_size//20),

@@ -11,6 +11,17 @@ def avg_sorted(patches):
                 ind_values.append([i,j])   
     return ind_values
 
+def min_top_avg(patches, ntop):
+    mean_values = []
+    ind_values = []
+    for i in range(patches.shape[0]):
+        for j in range(patches.shape[1]):
+            mean_values.append(abs(torch.mean(patches[i][j])-0.5)) 
+            ind_values.append([i,j])       
+    argmean_sorted = np.argsort(mean_values, axis=0)
+    ind_min10 = [ind_values[i] for i in argmean_sorted[0:ntop]]
+    return ind_min10
+
 def concat(patches):     
     col_concat = torch.tensor([])
     final_mask = torch.tensor([])

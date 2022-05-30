@@ -118,7 +118,8 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
     Y_pred_patch = torch.squeeze(_Y_pred_hi).unfold(dimension=0, size=patch_size, step=patch_size).unfold(dimension=1, size=patch_size, step=patch_size).cpu()
 
     #
-    indices_val = patches_func.avg_sorted(Y_pred_patch)
+    #indices_val = patches_func.avg_sorted(Y_pred_patch)
+    indices_val = min_top_avg.avg_sorted(Y_pred_patch, args.npatches)
     print(indices_val)
     save.top_result(Y_pred_patch, indices_val, args.dataset.upper(), 'pred', num, path)
 
