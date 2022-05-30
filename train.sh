@@ -1,6 +1,7 @@
 #!/bin/bash
-DATASETS="PH2 EVICAN RETINA KITTI"
-for DATASET in $DATASETS; do
-    python3 train.py $DATASET 0
-    python3 train.py $DATASET 1
+NPATCHES="2 4 8 16"
+for NPATCH in $NPATCHES; do
+    echo "NPATCH=$NPATCH"
+    python3 train.py PH2 1 --npatches $NPATCH
+    python3 two-seg.py PH2 --npatches $NPATCH
 done
