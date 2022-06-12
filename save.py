@@ -68,7 +68,7 @@ def fig(img, name, numb, path):
     plt.close(fig)
     fig.savefig(f'{path}/{name}.png',bbox_inches='tight', dpi=150)
     
-def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top, numb, path):
+def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top, numb, path, npatches):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
@@ -90,7 +90,7 @@ def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top, numb, path):
     plt.show()
     plt.close(fig)
     fig.savefig(f'{path}/models.png',bbox_inches='tight', dpi=150)
-    fig.savefig(f'{path[:-5]}/final-seg/img{numb}-two-seg.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/Two Segmentation Results - {npatches}/final-seg/img{numb}-two-seg.png',bbox_inches='tight', dpi=150)
     
 def model1_result(X, Y, Y_pred, numb, path):
     fig = plt.figure(figsize=(10,5))
