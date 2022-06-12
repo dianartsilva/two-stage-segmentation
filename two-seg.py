@@ -119,7 +119,7 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
 
     #
     #indices_val = patches_func.avg_sorted(Y_pred_patch)
-    indices_val = min_top_avg.avg_sorted(Y_pred_patch, args.npatches)
+    indices_val = patches_func.min_top_avg(Y_pred_patch, args.npatches)
     print(indices_val)
     save.top_result(Y_pred_patch, indices_val, args.dataset.upper(), 'pred', num, path)
 
@@ -165,7 +165,7 @@ for X_lo, Y_lo, X_hi, Y_hi in ts:
     # Save images
     final_mask = torch.squeeze(final_mask).cpu()
     save.fig(final_mask, 'final_mask', num, path)
-    save.TWOseg_result(Y_hi, Y_pred_hi, final_mask, patch_size, indices_val, num, path)
+    save.TWOseg_result(Y_hi, Y_pred_hi, final_mask, patch_size, indices_val, num, path, args.npatches)
     num += 1
 
 f = open(f'results/Two Segmentation Results - {args.npatches}/dice.txt', 'w')
