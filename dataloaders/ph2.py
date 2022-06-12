@@ -7,9 +7,11 @@ from torch.utils.data import Dataset
 
 class PH2(Dataset):
     hi_size = 768
-    pos_weight = 0.6326
+    pos_weight = 1.722  # 0.6326
     noutputs = 1
     nclasses = 2
+    colors = 3
+    can_rotate = True
 
     def __init__(self, fold, inputType = None, transform=None):
         assert fold in ['train', 'test'], f'fold {fold} must be train or test'

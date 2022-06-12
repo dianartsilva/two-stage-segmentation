@@ -5,12 +5,13 @@ from skimage.io import imread
 import torch
 from torch.utils.data import Dataset
 
-
 class EVICAN(Dataset):
     hi_size = 2048
-    pos_weight = 0.9764
+    pos_weight = 41.373  # 0.9764
     noutputs = 1
     nclasses = 2
+    colors = 1
+    can_rotate = True
 
     def __init__(self, fold, transform=None):
         assert fold in ['train', 'test'], f'fold {fold} must be train or test'
@@ -28,9 +29,9 @@ class EVICAN(Dataset):
         f = self.files[i]
        
         if self.fold == 'train':
-            img = imread(f'datasets/EVICAN_dataset/Images/EVICAN_train2019/{f}').astype(np.float32)
+            img = imread(f'datasets/EVICAN_dataset/Images/EVICAN_train2019/{f}', True).astype(np.float32)
         else:
-            img = imread(f'datasets/EVICAN_dataset/Images/EVICAN_val2019/{f}').astype(np.float32)
+            img = imread(f'datasets/EVICAN_dataset/Images/EVICAN_val2019/{f}', True).astype(np.float32)
 
         seg = (imread(f'{self.path_seg}/{f}', True) >= 128).astype(np.float32)
         
