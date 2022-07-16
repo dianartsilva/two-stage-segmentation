@@ -30,6 +30,6 @@ class UNet(nn.Module):
         return x
 
 if __name__ == '__main__':
-    unet = UNet(1)
-    print(summary(unet, (10, 1, 1024, 1024)))
-    print(unet(torch.zeros((10, 1, 1024, 1024))).shape)
+    unet = UNet(3)
+    print(summary(unet, (10, 3, 572, 572)))
+    print(unet(torch.zeros((10, 3, 572, 572))).shape)

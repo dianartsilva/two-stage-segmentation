@@ -68,7 +68,7 @@ def fig(img, name, numb, path):
     plt.close(fig)
     fig.savefig(f'{path}/{name}.png',bbox_inches='tight', dpi=150)
     
-def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top, numb, path, npatches):
+def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top, numb, path, dataset, model, npatches):
     fig = plt.figure(figsize=(10,5))
     plt.ion()
     plt.subplot(1, 3, 1)
@@ -90,7 +90,7 @@ def TWOseg_result(Y, Y_pred1, Y_pred2, patch_size, top, numb, path, npatches):
     plt.show()
     plt.close(fig)
     fig.savefig(f'{path}/models.png',bbox_inches='tight', dpi=150)
-    fig.savefig(f'results/Two Segmentation Results - {npatches}/final-seg/img{numb}-two-seg.png',bbox_inches='tight', dpi=150)
+    fig.savefig(f'results/[{dataset.upper()}-{model}] Two Segmentation Results - {npatches}/final-seg/img{numb}-two-seg.png',bbox_inches='tight', dpi=150)
     
 def model1_result(X, Y, Y_pred, numb, path):
     fig = plt.figure(figsize=(10,5))
@@ -104,7 +104,7 @@ def model1_result(X, Y, Y_pred, numb, path):
     Y = torch.squeeze(Y).cpu()
     plt.imshow(Y>=0.5, cmap='gray', vmin=0, vmax=1)
     plt.subplot(1, 3, 3)
-    plt.title('ResNet50-patches-False')
+    plt.title('UNet-patches-False')
     Y_pred = torch.squeeze(Y_pred).cpu()
     plt.imshow(Y_pred >= 0.5, cmap='gray', vmin=0, vmax=1)
     plt.show()

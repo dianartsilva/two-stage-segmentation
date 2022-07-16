@@ -12,12 +12,13 @@ from torchinfo import summary
 import datetime
 import importlib
 import losses
+import os
 
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset')
-parser.add_argument('use_patches', choices=[0, 1], type=int)
 parser.add_argument('model', choices=['deeplab', 'brain', 'ours'])
+parser.add_argument('use_patches', choices=[0, 1], type=int)
 parser.add_argument('--npatches', default=1, type=int)
 args = parser.parse_args()
 
@@ -41,8 +42,9 @@ if args.use_patches: # low-resolution
     ]
 else:
     l += [
-        A.Resize(ds.hi_size//8+ds.hi_size//20, ds.hi_size//8+ds.hi_size//20),
-        A.RandomCrop(ds.hi_size//8, ds.hi_size//8),
+        A.Resize(ds.hi_size, ds.hi_size)
+#        A.Resize(ds.hi_size//8+ds.hi_size//20, ds.hi_size//8+ds.hi_size//20),
+#        A.RandomCrop(ds.hi_size//8, ds.hi_size//8),
     ]
 l += [ToTensorV2()]
 train_transforms = A.Compose(l)
@@ -63,7 +65,7 @@ elif args.model == 'ours':
     model = UNet(ds.colors)
 model = model.to(device)
 
-summary(model, (10, ds.colors, ds.hi_size//args.npatches, ds.hi_size//args.npatches))
+#summary(model, (10, ds.colors, ds.hi_size//args.npatches, ds.hi_size//args.npatches))
 
 ################## TRAINING ##################
 
@@ -71,8 +73,8 @@ tr = DataLoader(tr, batch_size=64, shuffle=True, num_workers=6)
 learning_rate = 1e-4
 opt = optim.Adam(model.parameters(), learning_rate)
 
-loss_func = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(pos_weight))
-#loss_func = lambda ypred, y: sigmoid_focal_loss(ypred, y, reduction='mean')
+#loss_func = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(pos_weight))
+loss_func = lambda ypred, y: sigmoid_focal_loss(ypred, y, reduction='mean')
 
 # Training the model
 
@@ -80,8 +82,9 @@ model.train()
 print (f'\nTraining {args.dataset} USEPATCHES={args.use_patches} dataset...\n')
 
 EPOCHS = 200
-#if args.use_patches:
-#    EPOCHS *= 16
+
+if args.use_patches:
+    EPOCHS *= 5
 
 total_time = 0
 loss_values =[]
@@ -139,9 +142,9 @@ for epoch in range(EPOCHS):
 total_time = str(datetime.timedelta(seconds=round(total_time)))
 
 if args.use_patches:
-    torch.save(model.cpu().state_dict(), f'results/ResNet50-{args.dataset}-patches-{args.use_patches}-{args.npatches}.pth')
+    torch.save(model.cpu().state_dict(), f'results/{args.model}-{args.dataset}-patches-{args.use_patches}-{args.npatches}.pth')
 else:
-    torch.save(model.cpu().state_dict(), f'results/ResNet50-{args.dataset}-patches-{args.use_patches}.pth')
+    torch.save(model.cpu().state_dict(), f'results/{args.model}-{args.dataset}-patches-{args.use_patches}.pth')
 
 #print('loss values:', loss_values)
 #print('total time:', total_time)
@@ -150,13 +153,18 @@ else:
 
 import matplotlib.pyplot as plt
 
+path = f'results/[{args.dataset.upper()}] TRAIN'
+if not os.path.exists(path):
+    os.makedirs(path)
+
+
 # Plotting Loss vs Epoch
 fig = plt.figure(figsize=(10,5))
 plt.plot(epoch_values, loss_values)
-plt.title(f'{args.dataset} {args.use_patches} - Training Time = {total_time} \n Learning rate = {learning_rate}')
+plt.title(f'{args.dataset} - {args.use_patches} - {args.npatches} - Training Time = {total_time} \n Learning rate = {learning_rate}')
 plt.xlabel('EPOCH')
 plt.ylabel('Loss')
-fig.savefig(f'results/ResNet50_{args.dataset}_patches_{args.use_patches}_{args.npatches}train_loss.png',bbox_inches='tight', dpi=150)
+fig.savefig(f'{path}/{args.model}_patches_{args.use_patches}_{args.npatches}_train_loss.png',bbox_inches='tight', dpi=150)
 
 # Plotting Accuracy vs Epoch
 fig = plt.figure(figsize=(10,5))
@@ -166,12 +174,21 @@ plt.plot(epoch_values, acc_1, label='1-pixels Accuracy')
 plt.xlabel('EPOCH')
 plt.ylabel('Accuracy')
 plt.legend()
-fig.savefig(f'results/ResNet50_{args.dataset}_patches_{args.use_patches}_{args.npatches}train_acc.png',bbox_inches='tight', dpi=150)
+fig.savefig(f'{path}/{args.model}_patches_{args.use_patches}_{args.npatches}_train_acc.png',bbox_inches='tight', dpi=150)
 
 # Plotting Dice vs Epoch
 fig = plt.figure(figsize=(10,5))
 plt.plot(epoch_values, dice_values)
 plt.xlabel('EPOCH')
 plt.ylabel('Dice')
-fig.savefig(f'results/ResNet50_{args.dataset}_patches_{args.use_patches}_{args.npatches}train_dice.png',bbox_inches='tight', dpi=150)
+fig.savefig(f'{path}/{args.model}_patches_{args.use_patches}_{args.npatches}_train_dic.png',bbox_inches='tight', dpi=150)
+
+
+f = open(f'{path}/{args.model}_patches_{args.use_patches}_{args.npatches}_results.txt', 'w')
+print(f'Epoch: {epoch_values} \n', file=f)
+print(f'Loss: {loss_values} \n', file=f)
+print(f'Accuracy Total: {acc_total} \n', file=f)
+print(f'Accuracy 0: {acc_0} \n', file=f)
+print(f'Accuracy 1: {acc_1} \n', file=f)
+print(f'Time: {total_time}', file=f)
 
