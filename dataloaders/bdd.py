@@ -4,11 +4,11 @@ import numpy as np
 import os
 
 class BDD(Dataset):
-    hi_size = 720
-    pos_weight = 1
+    hi_size = 768 #720
+    pos_weight = 9.495455702930336
     noutputs = 1
     nclasses = 2
-    colors = 1
+    colors = 3
     can_rotate = False
 
     def __init__(self, fold, transform=None):
@@ -34,7 +34,7 @@ class BDD(Dataset):
         img = imread(os.path.join(self.root_img, fname[:-3] + 'jpg')).astype(np.float32)
         seg = imread(os.path.join(self.root_seg, fname))
         seg[seg == 255] = 0
-        print(seg.max())
+        #print(seg.max())
         # 11=pedestrian, 12=cyclist, 13=car, 14=van, 15=truck, 16=tram,
         # 17=motorcycle, 18=bicycle
         seg = np.logical_and(seg >= 13, seg <= 16).astype(np.float32)

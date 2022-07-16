@@ -11,7 +11,7 @@ def annotation(s, seg):
 
 class SARTORIUS(Dataset):
     hi_size = 512
-    pos_weight = 1
+    pos_weight = 8.539280150201735
     noutputs = 1
     nclasses = 2
     colors = 1
@@ -54,8 +54,8 @@ class SARTORIUS(Dataset):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    ds = SARTORIUS('train')
-    img, seg = ds[0]
+    ds = SARTORIUS('test')
+    img, seg = ds[60]
     plt.subplot(2, 1, 1)
     plt.imshow(img.astype(np.uint8))
     plt.subplot(2, 1, 2)

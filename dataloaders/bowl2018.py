@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 
 class BOWL2018(Dataset):
     hi_size = 256
-    pos_weight = 1  # 0.9764
+    pos_weight = 6.333001255483584
     noutputs = 1
     nclasses = 2
     colors = 3

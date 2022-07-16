@@ -5,10 +5,10 @@ import os
 
 class KITTI(Dataset):
     hi_size = 512
-    pos_weight = 1
+    pos_weight = 14.070919091353261
     noutputs = 1
     nclasses = 2
-    colors = 1
+    colors = 3
     can_rotate = False
 
     def __init__(self, fold, transform=None):

@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 
 class EVICAN(Dataset):
     hi_size = 2048
-    pos_weight = 41.373  # 0.9764
+    pos_weight = 46.554015156468154
     noutputs = 1
     nclasses = 2
     colors = 1

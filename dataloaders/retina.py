@@ -7,8 +7,8 @@ from torch.utils.data import Dataset
 
 
 class RETINA(Dataset):
-    hi_size = 768
-    pos_weight = 10.062  # 0.9096
+    hi_size = 768 #1024
+    pos_weight = 12.766107249245572
     noutputs = 1
     nclasses = 2
     colors = 3

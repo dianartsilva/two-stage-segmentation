@@ -6,8 +6,8 @@ import torch
 from torch.utils.data import Dataset
 
 class PH2(Dataset):
-    hi_size = 768
-    pos_weight = 1.722  # 0.6326
+    hi_size = 768 #1024
+    pos_weight = 2.186908188994559
     noutputs = 1
     nclasses = 2
     colors = 3
