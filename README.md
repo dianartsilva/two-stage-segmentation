@@ -5,5 +5,5 @@ Semantic segmentation consists of classifying each pixel according to a set of c
 Structure:
 
 * `train.py`: train the various models for the various datasets.
-* `test.py` evaluates the performance of the baseline.
-* `two-seg.py` evaluates the performance of the proposed stage1+stage2 pipeline.
+* `test-baseline.py` evaluates the performance of the baseline.
+* `test-twoseg.py` evaluates the performance of the proposed stage1+stage2 pipeline.
